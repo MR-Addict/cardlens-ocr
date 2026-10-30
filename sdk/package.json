@@ -1,0 +1,14 @@
+{
+  "name": "cardlens-ocr",
+  "version": "0.1.0",
+  "description": "Offline document OCR for browsers and Node.js",
+  "type": "module",
+  "license": "MIT",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": { "types": "./index.d.ts", "browser": "./browser.js", "node": "./node.js", "default": "./browser.js" },
+    "./web": { "types": "./index.d.ts", "default": "./browser.js" },
+    "./node": { "types": "./index.d.ts", "default": "./node.js" }
+  },
+  "optionalDependencies": { "sharp": "0.35.5" }
+}
