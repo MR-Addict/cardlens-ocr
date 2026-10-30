@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  pages: write
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -56,3 +57,11 @@ jobs:
           jekyll: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable and build GitHub Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/pages" --silent || \
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pages" \
+              -f build_type=legacy -f 'source[branch]=gh-pages' -f 'source[path]=/' --silent
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --silent
