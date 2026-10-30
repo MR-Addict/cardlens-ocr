@@ -27,7 +27,7 @@ if(EMSCRIPTEN)
   target_compile_options(cardlens_core PRIVATE -fexceptions)
   target_compile_options(cardlens_wasm PRIVATE -fexceptions)
   target_link_options(cardlens_wasm PRIVATE
-    -fexceptions -sDISABLE_EXCEPTION_CATCHING=0 -sMODULARIZE=1 -sEXPORT_ES6=1
+    -fexceptions -Wl,--threads=1 -sDISABLE_EXCEPTION_CATCHING=0 -sMODULARIZE=1 -sEXPORT_ES6=1
     -sENVIRONMENT=web,worker,node -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=67108864
     -sMAXIMUM_MEMORY=2147483648 -sSTACK_SIZE=5242880 -sFILESYSTEM=1
     "-sEXPORTED_FUNCTIONS=['_cl_initialize','_cl_recognize','_cl_release','_cl_free','_malloc','_free']"

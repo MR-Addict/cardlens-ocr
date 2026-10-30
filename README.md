@@ -93,6 +93,8 @@ ocr.release();
 
 需要 Python 3.12+、CMake 3.20+ 和 C++17 编译器。原生构建配置覆盖 Linux、macOS、Windows。
 
+Linux 本机构建通过 systemd 用户服务隔离，默认单任务、单核 25% CPU 和 2 GiB 内存上限。Emscripten、Binaryen 与数值库使用单线程。
+
 ```sh
 python scripts/build.py native
 python tests/fetch_references.py

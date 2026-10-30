@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+from build_limits import protect_build
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'out'
@@ -54,9 +55,10 @@ def sources():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('target', choices=['native', 'wasm', 'harmonyos'], nargs='?', default='native')
-    parser.add_argument('--jobs', type=int, default=4)
+    parser.add_argument('--jobs', type=int, choices=[1, 2, 3, 4], default=1)
     parser.add_argument('--deps-only', action='store_true')
     args = parser.parse_args()
+    protect_build()
     manifest = json.loads((ROOT / 'models/manifest.json').read_text(encoding='utf-8'))
     for entry in manifest['files']:
         path = ROOT / 'models' / entry['file']
