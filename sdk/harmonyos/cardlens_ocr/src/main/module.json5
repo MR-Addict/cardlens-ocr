@@ -1,0 +1,10 @@
+{
+  "module": {
+    "name": "cardlens_ocr",
+    "type": "har",
+    "deviceTypes": [
+      "phone",
+      "tablet"
+    ]
+  }
+}

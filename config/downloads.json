@@ -1,0 +1,37 @@
+[
+  {
+    "file": "opencv.tar.gz",
+    "url": "https://codeload.github.com/opencv/opencv/tar.gz/31b0eeea0b44b370fd0712312df4214d4ae1b158",
+    "sha256": "bb15d5c85bab38c1377c0c7dd7ff201b078bcdb41cc4ff9f85ac61aa56b5f631"
+  },
+  {
+    "file": "pnnx.zip",
+    "url": "https://github.com/pnnx/pnnx/releases/download/20261020/pnnx-20261020-linux.zip",
+    "sha256": "6cfff631178e02e62542e72bf14e0045dfce62095bbc1f633176e9c0778ab8a6"
+  },
+  {
+    "file": "PP-OCRv5_mobile_det_infer.tar",
+    "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+    "sha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58"
+  },
+  {
+    "file": "PP-OCRv5_mobile_rec_infer.tar",
+    "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_rec_infer.tar",
+    "sha256": "566b9512b34e34a9f0db54d87b51fa5a0b9ed2cf1ab7e49728cc0b8b5a64f414"
+  },
+  {
+    "file": "ncnn.tar.gz",
+    "url": "https://codeload.github.com/Tencent/ncnn/tar.gz/66a63a20a75ba89b06906d5ec527d2ac0367784b",
+    "sha256": "185b39357cbfa43638cae02ffdc37fabbd4c54af43f7c1f3efec4f5bfd612e27"
+  },
+  {
+    "file": "json.hpp",
+    "url": "https://raw.githubusercontent.com/nlohmann/json/v3.11.3/single_include/nlohmann/json.hpp",
+    "sha256": "9bea4c8066ef4a1c206b2be5a36302f8926f7fdc6087af5d20b417d0cf103ea6"
+  },
+  {
+    "file": "clipper2.tar.gz",
+    "url": "https://codeload.github.com/AngusJohnson/Clipper2/tar.gz/refs/tags/Clipper2_1.5.4",
+    "sha256": "9d8a35a29d04cd1b7b45f542c0ba48015feece1210036ea9e4efaad3140af4b0"
+  }
+]

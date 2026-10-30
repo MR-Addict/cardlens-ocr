@@ -1,0 +1,7 @@
+{
+  "name": "cardlens-ocr-sdk",
+  "version": "0.1.0",
+  "description": "Offline document OCR SDK for HarmonyOS",
+  "dependencies": {},
+  "modelVersion": "6.0.0"
+}

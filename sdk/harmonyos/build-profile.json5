@@ -1,0 +1,31 @@
+{
+  "app": {
+    "products": [
+      {
+        "name": "default",
+        "compatibleSdkVersion": "26.0.0",
+        "targetSdkVersion": "26.0.0",
+        "runtimeOS": "HarmonyOS"
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "cardlens_ocr",
+      "srcPath": "./cardlens_ocr",
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}

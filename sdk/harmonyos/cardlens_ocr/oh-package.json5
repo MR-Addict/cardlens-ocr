@@ -1,0 +1,10 @@
+{
+  "name": "cardlens-ocr",
+  "version": "0.1.0",
+  "description": "Offline document OCR SDK for HarmonyOS",
+  "main": "Index.ets",
+  "types": "Index.d.ts",
+  "dependencies": {
+    "libcardlens_ocr.so": "file:./src/main/cpp/types/libcardlens_ocr"
+  }
+}

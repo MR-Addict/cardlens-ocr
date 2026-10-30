@@ -1,0 +1,10 @@
+/out/
+**/__pycache__/
+*.pyc
+/node_modules/
+**/oh_modules/
+**/.hvigor/
+**/.cxx/
+**/build/
+*.egg-info/
+.DS_Store

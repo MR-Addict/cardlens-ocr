@@ -1,0 +1,60 @@
+{
+  "review": "Manually transcribed from images; date row enlarged for review. Not copied from vendor response JSON.",
+  "cases": [
+    {
+      "file": "id-front.jpg",
+      "type": "id_card",
+      "side": "portrait",
+      "expected": {
+        "name": "刘洋",
+        "sex": "女",
+        "ethnicity": "汉",
+        "birthDate": "1995年5月13日",
+        "address": "广东省深圳市南山区腾讯大厦",
+        "idNumber": "440305199505132561"
+      }
+    },
+    {
+      "file": "id-back.jpg",
+      "type": "id_card",
+      "side": "emblem",
+      "expected": {
+        "authority": "上海市公安局南山分局",
+        "validity": "2018.08.12-2038.08.12"
+      }
+    },
+    {
+      "file": "driver.jpg",
+      "type": "driver_license",
+      "side": "main",
+      "expected": {
+        "name": "刘洋",
+        "sex": "女",
+        "nationality": "中国",
+        "address": "广东省深圳市南山区腾讯大厦",
+        "licenseNumber": "440305198305101408",
+        "birthDate": "1983-05-10",
+        "firstIssueDate": "2005-05-01",
+        "vehicleClass": "C2",
+        "validity": "2015-10-01至2025-10-01"
+      }
+    },
+    {
+      "file": "vehicle.jpg",
+      "type": "vehicle_license",
+      "side": "main",
+      "expected": {
+        "plateNumber": "沪AA1234",
+        "vehicleType": "小型轿车",
+        "owner": "李明",
+        "address": "上海市徐汇区田林路397号腾云大厦6F",
+        "useCharacter": "非营运",
+        "model": "别克牌SGM7151LAAA",
+        "vin": "ABCDEFGH123456789",
+        "engineNumber": "8B54321",
+        "registerDate": "2011-10-10",
+        "issueDate": "2011-10-10"
+      }
+    }
+  ]
+}

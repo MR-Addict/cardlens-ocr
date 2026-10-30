@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cardlens-ocr"
+version = "0.1.0"
+description = "Offline ID card, driver license and vehicle license OCR"
+requires-python = ">=3.10"
+dependencies = ["Pillow>=10"]
+license = "MIT"
+
+[tool.setuptools]
+packages = ["cardlens_ocr"]

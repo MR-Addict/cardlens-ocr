@@ -1,0 +1,14 @@
+CardLens OCR
+Copyright (c) 2026 MR-Addict
+
+CardLens source code is licensed under MIT.
+Bundled model files and third-party dependencies retain their own licenses:
+
+PaddleOCR PP-OCRv5 mobile detection and recognition models — Apache-2.0
+NCNN — BSD-3-Clause (including upstream third-party notices)
+OpenCV — Apache-2.0
+Clipper2 — BSL-1.0
+nlohmann/json — MIT
+
+License texts are in licenses/. Model provenance and checksums are in
+models/manifest.json. HarmonyOS runtime notices are included with the HAR.

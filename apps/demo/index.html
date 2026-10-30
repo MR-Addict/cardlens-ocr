@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="CardLens OCR：在浏览器本地识别身份证、驾驶证与行驶证。">
+  <title>CardLens OCR · 离线证件识别</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><img src="./icon.svg" alt="" width="30" height="30">CardLens <span>OCR</span></a>
+    <a class="github" href="https://github.com/MR-Addict/cardlens-ocr" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="eyebrow"><span class="dot"></span> 本地识别 · 多端共用内核</div>
+      <h1>从一张证件，<br>到清晰的信息<span>。</span></h1>
+      <p>身份证、驾驶证、行驶证。图片始终留在你的设备上。</p>
+    </section>
+    <section class="workspace" aria-label="证件识别工作区">
+      <div class="input-panel panel">
+        <div class="panel-head"><h2><span class="step">01</span> 选择证件</h2><span class="muted">JPEG / PNG · 20 MB</span></div>
+        <div class="controls">
+          <label>证件类型<select id="type"><option value="id_card">居民身份证</option><option value="driver_license">机动车驾驶证</option><option value="vehicle_license">机动车行驶证</option></select></label>
+          <label>证件页面<select id="side"><option value="portrait">人像面</option><option value="emblem">国徽面</option></select></label>
+        </div>
+        <label class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="选择证件图片">
+          <input id="file" type="file" accept="image/jpeg,image/png" hidden>
+          <span class="upload-icon" aria-hidden="true">＋</span>
+          <strong>点击选择，或拖入证件图片</strong>
+          <span>建议使用完整、清晰的单张证件</span>
+        </label>
+        <div class="preview" id="preview" hidden><canvas id="canvas" aria-label="证件图片与识别位置"></canvas></div>
+        <div class="file-row" id="file-row" hidden><span id="filename"></span><button id="change" class="text-button">更换图片</button></div>
+        <button id="recognize" class="primary" disabled>开始识别 <span aria-hidden="true">→</span></button>
+        <p id="message" class="message" role="status" aria-live="polite">选择图片后即可开始</p>
+        <progress id="progress" max="5" value="0" hidden aria-label="模型加载进度"></progress>
+      </div>
+      <div class="output-panel panel">
+        <div class="panel-head"><h2><span class="step">02</span> 识别结果</h2><span id="timing" class="muted"></span></div>
+        <div id="empty" class="empty"><div class="document-icon" aria-hidden="true"><span></span><span></span><span></span></div><strong>文字，让信息更易用</strong><p>识别后在这里查看字段与位置</p></div>
+        <div id="output" hidden>
+          <div class="result-header"><span id="status" class="status"></span><button id="download" class="text-button">导出 JSON ↓</button></div>
+          <dl id="fields"></dl>
+          <ul id="warnings" class="warnings"></ul>
+          <details><summary>查看原始文字</summary><div id="lines"></div></details>
+        </div>
+      </div>
+    </section>
+    <footer><span>CardLens OCR</span><span>Web · Node.js · Python · C/C++ · 鸿蒙</span><a href="https://github.com/MR-Addict/cardlens-ocr/blob/main/LICENSE">MIT License</a></footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

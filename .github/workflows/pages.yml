@@ -1,0 +1,58 @@
+name: Deploy GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: mymindstorm/setup-emsdk@v16
+        with:
+          version: '6.0.13'
+          actions-cache-folder: out/emsdk-cache
+      - uses: actions/cache@v5
+        with:
+          path: |
+            out/downloads
+            out/deps
+          key: wasm-${{ runner.os }}-6.0.13-${{ hashFiles('scripts/build.py', 'config/downloads.json') }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build SDK and demo
+        run: |
+          python scripts/build.py wasm
+          pnpm build
+      - name: Check Node.js SDK
+        run: |
+          python tests/fetch_references.py
+          pnpm test:node
+      - name: Check browser recognition
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:web
+      - name: Deploy to GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v5
+        with:
+          target_branch: gh-pages
+          build_dir: out/site
+          jekyll: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

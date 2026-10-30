@@ -1,0 +1,26 @@
+[
+  {
+    "id": "id-front",
+    "url": "https://ocr-demo-1254418846.cos.ap-guangzhou.myqcloud.com/card/IDCardOCR/IDCardOCR1.jpg",
+    "source_page": "https://cloud.tencent.com/document/api/866/33524",
+    "sha256": "65ddaa50c2c6f6bdbacc8878a2ab82d57432f8b34d8433e6ab7f580b521abde3"
+  },
+  {
+    "id": "id-back",
+    "url": "https://ocr-demo-1254418846.cos.ap-guangzhou.myqcloud.com/card/IDCardBackOCR/IDCardBackOCR2.jpg",
+    "source_page": "https://cloud.tencent.com/document/api/866/33524",
+    "sha256": "7dc8802e1191af5ab8897dea432b71c36c22ef5208e5fea3e7a43c63c3ea7558"
+  },
+  {
+    "id": "driver",
+    "url": "https://ocr-demo-1254418846.cos.ap-guangzhou.myqcloud.com/vehicle/DriverLicenseOCR/DriverLicenseOCR1.jpg",
+    "source_page": "https://cloud.tencent.com/document/product/866/36213",
+    "sha256": "787c2726c64b4ff9bbc96685f02eab6a6376441f0577202196ce4ad52df36d7d"
+  },
+  {
+    "id": "vehicle",
+    "url": "https://ocr-demo-1254418846.cos.ap-guangzhou.myqcloud.com/vehicle/VehicleLicenseOCR/VehicleLicenseOCR2.jpg",
+    "source_page": "https://cloud.tencent.com/document/api/866/36209",
+    "sha256": "e3720fe69b26d6e14414b01c7e0a4d08f4308f56e378bc9e3b8238c4b9e61646"
+  }
+]
