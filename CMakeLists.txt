@@ -3,6 +3,11 @@ project(cardlens_ocr VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  set_property(GLOBAL PROPERTY JOB_POOLS cardlens_compile=1 cardlens_link=1)
+  set(CMAKE_JOB_POOL_COMPILE cardlens_compile)
+  set(CMAKE_JOB_POOL_LINK cardlens_link)
+endif()
 if(MSVC)
   add_compile_options(/utf-8)
 endif()
@@ -31,7 +36,7 @@ if(EMSCRIPTEN)
     -sENVIRONMENT=web,worker,node -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=67108864
     -sMAXIMUM_MEMORY=2147483648 -sSTACK_SIZE=5242880 -sFILESYSTEM=1
     "-sEXPORTED_FUNCTIONS=['_cl_initialize','_cl_recognize','_cl_release','_cl_free','_malloc','_free']"
-    "-sEXPORTED_RUNTIME_METHODS=['FS','UTF8ToString','stringToUTF8','lengthBytesUTF8','getValue','setValue']")
+    "-sEXPORTED_RUNTIME_METHODS=['FS','HEAPU8','UTF8ToString','stringToUTF8','lengthBytesUTF8','getValue','setValue']")
   set_target_properties(cardlens_wasm PROPERTIES OUTPUT_NAME cardlens SUFFIX .mjs
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/out/wasm")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "OHOS")

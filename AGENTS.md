@@ -8,4 +8,4 @@
 - SDK 通过一个接口对象提供 `initialize`、`recognize`、`release` 三个属性方法，采用 `ocr.initialize(...)`、`ocr.recognize(...)`、`ocr.release()` 的调用形式。
 - API 保持最小化，不增加 `getVersion`、版本追踪及与识别无关的接口；各端沿用一致的方法命名和结果结构。
 - README 简要介绍识别能力与效果，以最短可用示例说明接入方式；多端介绍顺序为 Web、Node.js、Python、C/C++、鸿蒙。
-- 本机编译优先保障 Codex 服务稳定：使用独立 cgroup，将 CPU 限制为单核 25%、内存限制为 2 GiB，默认单任务，并限制 Emscripten、Binaryen 和数值库线程数。先验证资源限额，再执行短时编译检查；完整 WASM 构建通过 GitHub Actions 执行。
+- 本机编译优先保障 Codex 服务稳定：使用独立 cgroup，将 CPU 限制为单核 25%、内存限制为 2 GiB，默认单任务，并限制 Emscripten、Binaryen 和数值库线程数。先验证资源限额和短时编译，再执行用户要求的完整流程验证；完整 WASM 构建也可通过 GitHub Actions 执行。

@@ -57,6 +57,7 @@ def main():
     parser.add_argument('target', choices=['native', 'wasm', 'harmonyos'], nargs='?', default='native')
     parser.add_argument('--jobs', type=int, choices=[1, 2, 3, 4], default=1)
     parser.add_argument('--deps-only', action='store_true')
+    parser.add_argument('--use-installed-deps', action='store_true', help='Use dependencies already installed under out/deps')
     args = parser.parse_args()
     protect_build()
     manifest = json.loads((ROOT / 'models/manifest.json').read_text(encoding='utf-8'))
@@ -86,7 +87,8 @@ def main():
     def configure(source, build, extra):
         run(cmake + ['-S', source, '-B', build, *flags, *extra])
         run(['cmake', '--build', build, '--config', 'Release', '--parallel', args.jobs])
-    for name, location in [('ncnn', 'ncnn'), ('opencv', 'opencv-31b0eeea0b44b370fd0712312df4214d4ae1b158')]:
+    dependencies = [] if args.use_installed_deps else [('ncnn', 'ncnn'), ('opencv', 'opencv-31b0eeea0b44b370fd0712312df4214d4ae1b158')]
+    for name, location in dependencies:
         build = OUT / 'build' / f'{name}-{kind}'
         # Successful installations are reusable; source and options are pinned by target.
         stamp = prefix / f'.cardlens-{name}'
@@ -108,6 +110,8 @@ def main():
                      '-DWITH_QUIRC=OFF', '-DWITH_ADE=OFF', '-DWITH_JASPER=OFF']
             if kind != 'host':
                 extra += ['-DWITH_PNG=OFF', '-DWITH_JPEG=OFF']
+            elif platform.machine().lower() in ('x86_64', 'amd64'):
+                extra += ['-DCPU_BASELINE=SSE2']
             if kind == 'wasm':
                 extra += ['-DCV_ENABLE_INTRINSICS=OFF', '-DWITH_PTHREADS_PF=OFF',
                           '-DCPU_BASELINE=', '-DBUILD_opencv_js=OFF']

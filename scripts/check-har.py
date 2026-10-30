@@ -20,6 +20,7 @@ with tarfile.open(path) as archive:
         assert key is not None,'Missing model '+name
         assert hashlib.sha256(files[key]).digest()==hashlib.sha256(source.read_bytes()).digest(),'Model changed '+name
     assert any('/rawfile/cardlens_ocr/licenses/' in n for n in files),'Dependency notices missing'
+    assert any(n.endswith('/rawfile/cardlens_ocr/LICENSE') for n in files),'SDK license missing'
     assert any(n.endswith('/Index.d.ts') for n in files),'ArkTS types missing'
     for name,data in libraries.items():
         if name.endswith('/libcardlens_ocr.so'):

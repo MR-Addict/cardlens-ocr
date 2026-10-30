@@ -20,7 +20,9 @@ class _Ocr:
             if library is None:
                 root = Path(__file__).resolve().parents[3]
                 name = {'Linux': 'libcardlens.so', 'Darwin': 'libcardlens.dylib', 'Windows': 'cardlens.dll'}[platform.system()]
-                library = root / 'out/build/native' / ('Release' if platform.system() == 'Windows' else '') / name
+                directories = [Path.cwd(), root]
+                candidates = [directory / 'out/build/native' / ('Release' if platform.system() == 'Windows' else '') / name for directory in directories]
+                library = next((path for path in candidates if path.is_file()), candidates[0])
             lib = c.CDLL(str(library))
             lib.cl_initialize.argtypes = [c.c_char_p, c.POINTER(c.c_void_p), c.POINTER(c.c_void_p)]
             lib.cl_initialize.restype = c.c_int

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "$(uname -s)" == Linux && "${CARDLENS_LIMITED_BUILD:-}" != 1 && "${GITHUB_ACTIONS:-}" != true ]]; then
+  exec python3 "$root/scripts/build_limits.py" bash "$root/scripts/build-harmonyos.sh" "$@"
+fi
 if [[ -z "${OHOS_NDK_HOME:-}" ]]; then
   toolroot="${CARDLENS_HARMONY_TOOLS:-$HOME/.local/share/harmony-ocr/command-line-tools}"
   export OHOS_NDK_HOME="$toolroot/sdk/default/openharmony/native"

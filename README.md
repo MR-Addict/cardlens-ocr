@@ -101,6 +101,8 @@ python tests/fetch_references.py
 ctest --test-dir out/build/native -C Release --output-on-failure
 ```
 
+已有依赖缓存时，可在原生构建命令中添加 `--use-installed-deps`。
+
 Web / Node.js 使用 Node.js 24+、pnpm 12 和 Emscripten 6.0.13：
 
 ```sh
@@ -113,8 +115,10 @@ pnpm test:web
 python -m http.server 4173 --directory out/site
 ```
 
+Linux 本机浏览器检查使用 `python scripts/build_limits.py --tasks 128 pnpm test:web`。
+
 鸿蒙构建需配置官方命令行工具及 `OHOS_NDK_HOME`，运行 `bash scripts/build-harmonyos.sh`。
 
 `core/` 保存识别内核，`sdk/` 保存各端封装，`apps/demo/` 保存在线体验页面。模型来源与校验值见 [`models/manifest.json`](models/manifest.json)，依赖许可见 [`NOTICE`](NOTICE)。
 
-当前已通过 Linux 原生、Python 和鸿蒙 HAR 检查；Web / Node.js 的 WASM 构建与识别验证交由 GitHub Actions 执行。
+已在 Linux 验证 WASM 构建、Web / Node.js 识别、Python 安装调用、原生回归和鸿蒙 HAR 构建。

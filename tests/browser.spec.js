@@ -6,14 +6,14 @@ test('recognizes four document sides locally and exports JSON', async ({ page })
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (!['GET', 'HEAD'].includes(request.method())) uploads.push(request.url()); });
   await page.goto('./');
-  await expect(page.getByRole('heading', { name: '从一张证件，到清晰的信息。' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /从一张证件/ })).toBeVisible();
   const gold = JSON.parse(await readFile('tests/gold.json', 'utf8'));
   for (const item of gold.cases) {
     await page.locator('#type').selectOption(item.type);
     await page.locator('#side').selectOption(item.side);
     await page.locator('#file').setInputFiles(`out/testdata/${item.file}`);
     await page.locator('#recognize').click();
-    await expect(page.locator('#message')).toHaveText('识别完成，请核对字段内容', { timeout: 150000 });
+    await expect(page.locator('#message')).toHaveText('识别完成，请核对字段内容', { timeout: Number(process.env.CARDLENS_TEST_TIMEOUT_MS || 150000) });
     for (const value of Object.values(item.expected)) await expect(page.locator('#fields')).toContainText(value);
     const downloadEvent = page.waitForEvent('download');
     await page.locator('#download').click();

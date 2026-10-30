@@ -22,3 +22,4 @@ for path in (root / 'models').iterdir():
     if path.is_file(): shutil.copy2(path, resources / path.name)
 shutil.copytree(root / 'licenses', resources / 'licenses', dirs_exist_ok=True)
 shutil.copy2(root / 'NOTICE', resources / 'NOTICE')
+shutil.copy2(root / 'LICENSE', resources / 'LICENSE')

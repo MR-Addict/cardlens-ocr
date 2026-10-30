@@ -1,4 +1,5 @@
 """Run local Linux builds in a separate, bounded systemd cgroup."""
+import argparse
 import os
 from pathlib import Path
 import shutil
@@ -18,7 +19,7 @@ THREAD_LIMITS = {
 PROPERTIES = {
     'CPUQuota': '25%',
     'CPUWeight': '1',
-    'MemoryHigh': '1G',
+    'MemoryHigh': '1536M',
     'MemoryMax': '2G',
     'MemorySwapMax': '0',
     'TasksMax': '64',
@@ -38,13 +39,15 @@ def check_limits():
         raise RuntimeError('Build resource limits are not active')
     return group
 
-def run_limited(command, timeout=1800):
+def run_limited(command, timeout=1800, tasks=64):
+    if tasks not in (64, 128):
+        raise ValueError('Task limit must be 64 or 128')
     if not shutil.which('systemd-run'):
         raise RuntimeError('Local Linux builds require systemd-run with user cgroup support')
     unit = 'cardlens-build-' + uuid.uuid4().hex[:12]
     args = ['systemd-run', '--user', '--wait', '--pipe', '--collect',
             '--unit=' + unit, '--working-directory=' + str(Path.cwd())]
-    properties = {**PROPERTIES, 'RuntimeMaxSec': str(timeout),
+    properties = {**PROPERTIES, 'TasksMax': str(tasks), 'RuntimeMaxSec': str(timeout),
                   'CPUAffinity': str(max(os.sched_getaffinity(0)))}
     for key, value in properties.items():
         args += ['--property=' + key + '=' + value]
@@ -74,6 +77,10 @@ def protect_build():
         raise SystemExit(run_limited([sys.executable, *sys.argv]))
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        raise SystemExit('Usage: python scripts/build_limits.py COMMAND [ARGUMENT ...]')
-    raise SystemExit(run_limited(sys.argv[1:]))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--tasks', type=int, choices=[64, 128], default=64)
+    parser.add_argument('command', nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    if not args.command:
+        parser.error('Specify a command to run')
+    raise SystemExit(run_limited(args.command, tasks=args.tasks))
