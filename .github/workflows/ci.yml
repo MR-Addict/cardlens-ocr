@@ -18,14 +18,24 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - uses: actions/cache@v5
+      - uses: actions/cache/restore@v5
+        id: deps
         with:
           path: |
             out/downloads
             out/deps
           key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/build.py', 'config/downloads.json') }}
+      - name: Build native dependencies
+        run: python scripts/build.py native --deps-only
+      - uses: actions/cache/save@v5
+        if: steps.deps.outputs.cache-hit != 'true'
+        with:
+          path: |
+            out/downloads
+            out/deps
+          key: ${{ steps.deps.outputs.cache-primary-key }}
       - name: Build native SDK
-        run: python scripts/build.py native
+        run: python scripts/build.py native --use-installed-deps
       - name: Fetch reference inputs
         run: python tests/fetch_references.py
       - name: Check C++ SDK

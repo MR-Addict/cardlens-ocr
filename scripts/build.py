@@ -124,7 +124,8 @@ def main():
         return
     extra = [f'-DCARDLENS_DEPS={prefix}', f'-DCARDLENS_COMMON={OUT}/deps/common']
     if platform.system() == 'Windows':
-        configs = list(prefix.rglob('OpenCVConfig.cmake'))
+        configs = [path for path in prefix.rglob('OpenCVConfig.cmake')
+                   if (path.parent / 'OpenCVModules.cmake').is_file()]
         if configs:
             extra.append(f'-DOpenCV_DIR={configs[0].parent}')
     configure(ROOT, OUT / 'build' / args.target, extra)

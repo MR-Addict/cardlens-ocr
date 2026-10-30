@@ -27,7 +27,8 @@ jobs:
         with:
           version: '6.0.13'
           actions-cache-folder: out/emsdk-cache
-      - uses: actions/cache@v5
+      - uses: actions/cache/restore@v5
+        id: deps
         with:
           path: |
             out/downloads
@@ -35,9 +36,18 @@ jobs:
           key: wasm-${{ runner.os }}-6.0.13-${{ hashFiles('scripts/build.py', 'config/downloads.json') }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build WASM dependencies
+        run: python scripts/build.py wasm --deps-only
+      - uses: actions/cache/save@v5
+        if: steps.deps.outputs.cache-hit != 'true'
+        with:
+          path: |
+            out/downloads
+            out/deps
+          key: ${{ steps.deps.outputs.cache-primary-key }}
       - name: Build SDK and demo
         run: |
-          python scripts/build.py wasm
+          python scripts/build.py wasm --use-installed-deps
           pnpm build
       - name: Check Node.js SDK
         run: |
@@ -55,11 +65,8 @@ jobs:
           jekyll: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Enable and build GitHub Pages
+      - name: Build GitHub Pages
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/pages" --silent || \
-            gh api --method POST "repos/$GITHUB_REPOSITORY/pages" \
-              -f build_type=legacy -f 'source[branch]=gh-pages' -f 'source[path]=/' --silent
           gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --silent
