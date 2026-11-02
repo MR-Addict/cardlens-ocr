@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import sharp from 'sharp';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 test('recognizes four document sides locally and exports JSON', async ({ page }) => {
@@ -160,20 +161,58 @@ test('pasting leaves plain text alone and validates clipboard images', async ({ 
   await expect(page.locator('#preview')).toBeHidden();
 });
 
-test('preselects a document, links fields to image crops, copies and clears results', async ({ page, context }) => {
+for (const width of [1280, 390]) test(`preselects a document, links fields to image crops, copies and clears results (${width}px)`, async ({ page, context }) => {
+  await page.setViewportSize({ width, height: 900 });
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('./');
+  const panels = page.locator('.workspace .panel');
+  const initialHeights = await panels.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+  const stablePanels = async () => expect(await panels.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height))).toEqual(initialHeights);
   await page.locator('#type').selectOption('driver_license');
   await expect(page.locator('#side-control')).toBeHidden();
   await expect(page.locator('#message')).toBeHidden();
-  await page.locator('#file').setInputFiles('out/testdata/driver.jpg');
+  await page.locator('#file').setInputFiles(width === 390
+    ? { name: 'driver-rotated.jpg', mimeType: 'image/jpeg', buffer: await sharp('out/testdata/driver.jpg').rotate(90).toBuffer() }
+    : 'out/testdata/driver.jpg');
   await expect(page.locator('#output')).toBeVisible({ timeout: 150000 });
   await expect(page.locator('#fields > div')).toHaveCount(9);
+  await stablePanels();
   await expect(page.locator('#fields')).not.toContainText('置信分数');
   await page.getByRole('button', { name: '姓名', exact: true }).click();
   await expect(page.locator('#field-focus')).toBeVisible();
   await expect(page.locator('#focus-label')).toContainText('姓名');
   await expect(page.getByRole('button', { name: '姓名', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await stablePanels();
+  const preview = await page.locator('#preview').boundingBox(), overlay = await page.locator('#field-focus').boundingBox();
+  expect(overlay.x).toBeGreaterThanOrEqual(preview.x);
+  expect(overlay.y).toBeGreaterThanOrEqual(preview.y);
+  expect(overlay.y + overlay.height).toBeLessThanOrEqual(preview.y + preview.height + 1);
+  await expect(page.locator('#focus-close')).toBeFocused();
+  const hint = await page.locator('#focus-hint').boundingBox();
+  expect(hint.y + hint.height).toBeLessThanOrEqual(preview.y + preview.height);
+  const zoom = await page.locator('#focus-canvas').boundingBox();
+  expect(zoom.y + zoom.height).toBeLessThanOrEqual(hint.y);
+  await page.screenshot({ path: `out/validation/field-overlay-${width}.png`, fullPage: true });
+  await page.getByRole('button', { name: '姓名', exact: true }).click();
+  await expect(page.locator('#field-focus')).toBeHidden();
+  await expect(page.getByRole('button', { name: '姓名', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('button', { name: '姓名', exact: true }).click();
+  await page.getByRole('button', { name: '性别', exact: true }).click();
+  await expect(page.locator('#focus-label')).toContainText('性别');
+  await page.locator('#focus-close').click();
+  await expect(page.locator('#field-focus')).toBeHidden();
+  await expect(page.getByRole('button', { name: '性别', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: '姓名', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#field-focus')).toBeHidden();
+  await expect(page.getByRole('button', { name: '姓名', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: '姓名', exact: true }).click();
+  await page.locator('#field-focus').click({ position: { x: 3, y: 3 } });
+  await expect(page.locator('#field-focus')).toBeHidden();
+  await page.locator('#fields details summary').first().click();
+  await stablePanels();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
   await page.getByRole('button', { name: '复制姓名', exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('刘洋');
   await page.locator('#copy-all').click();
@@ -184,6 +223,7 @@ test('preselects a document, links fields to image crops, copies and clears resu
   await expect(page.locator('#field-focus')).toBeHidden();
   await expect(page.locator('#output')).toBeHidden();
   await expect(page.locator('#fields')).toBeEmpty();
+  await stablePanels();
 });
 
 test('shows missing fields and translates reasons, with a document correction action', async ({ page }) => {

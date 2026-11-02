@@ -37,27 +37,37 @@
           <span class="drop-hint">拖入、粘贴图片，或<span class="upload-link">点击选择</span></span>
           <span class="file-formats">JPEG / PNG <span>·</span> 最大 20 MB</span>
         </label>
-        <div id="field-focus" class="field-focus" aria-live="polite" hidden><span id="focus-label"></span><canvas id="focus-canvas" aria-label="当前字段放大预览"></canvas></div>
-        <div class="preview" id="preview" hidden><canvas id="canvas" aria-label="证件图片与识别位置"></canvas></div>
+        <div class="preview" id="preview" hidden>
+          <canvas id="canvas" aria-label="证件图片与识别位置"></canvas>
+          <div id="field-focus" class="field-focus" hidden>
+            <section class="focus-dialog" role="dialog" aria-labelledby="focus-label" aria-describedby="focus-hint">
+              <div class="focus-head"><span id="focus-label"></span><button id="focus-close" class="focus-close" aria-label="关闭局部放大">×</button></div>
+              <div class="focus-image"><canvas id="focus-canvas" aria-label="当前字段放大预览"></canvas></div>
+              <p id="focus-hint">再次点击字段或按 Esc 收起</p>
+            </section>
+          </div>
+        </div>
         <div class="file-row" id="file-row" hidden><span id="filename"></span><button id="change" class="text-button">更换图片 ↗</button><button id="clear" class="text-button">清除</button></div>
 
       </div>
       <div class="output-panel panel" id="output-panel" aria-busy="false">
         <div class="panel-head"><h2><span class="step">02</span> 读取信息</h2><span id="timing" class="muted"></span><span class="section-tag output-tag">RECOGNITION OUTPUT</span></div>
-        <p id="message" class="message" role="status" aria-live="polite" hidden></p>
-        <button id="retry" class="text-button" hidden>重试识别</button>
-        <progress id="progress" max="5" value="0" hidden aria-label="模型加载进度"></progress>
-        <div id="empty" class="empty">
-          <div class="empty-visual" aria-hidden="true"><span class="cross cross-tl">+</span><span class="cross cross-br">+</span><div class="document-icon"><span class="document-label">Aa</span><span></span><span></span><span></span><i>↗</i></div></div>
-          <strong>每一条信息，都清晰有序。</strong><p>识别完成后，在这里查看与导出结果</p>
-          <div class="waiting"><span></span> 等待置入证件</div>
-        </div>
-        <div id="output" hidden>
-          <div class="result-header"><span id="status" class="status"></span><button id="copy-all" class="text-button">复制全部</button><button id="download" class="text-button">导出 JSON ↓</button></div>
-          <button id="switch-type" class="text-button" hidden></button>
-          <dl id="fields"></dl>
-          <ul id="warnings" class="warnings"></ul>
-          <details><summary>查看原始文字</summary><div id="lines"></div></details>
+        <div class="output-body">
+          <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+          <button id="retry" class="text-button" hidden>重试识别</button>
+          <progress id="progress" max="5" value="0" hidden aria-label="模型加载进度"></progress>
+          <div id="empty" class="empty">
+            <div class="empty-visual" aria-hidden="true"><span class="cross cross-tl">+</span><span class="cross cross-br">+</span><div class="document-icon"><span class="document-label">Aa</span><span></span><span></span><span></span><i>↗</i></div></div>
+            <strong>每一条信息，都清晰有序。</strong><p>识别完成后，在这里查看与导出结果</p>
+            <div class="waiting"><span></span> 等待置入证件</div>
+          </div>
+          <div id="output" hidden>
+            <div class="result-header"><span id="status" class="status"></span><button id="copy-all" class="text-button">复制全部</button><button id="download" class="text-button">导出 JSON ↓</button></div>
+            <button id="switch-type" class="text-button" hidden></button>
+            <dl id="fields"></dl>
+            <ul id="warnings" class="warnings"></ul>
+            <details><summary>查看原始文字</summary><div id="lines"></div></details>
+          </div>
         </div>
         <div class="output-foot"><span class="dot"></span> <span id="offline-state">图片仅在本地处理</span> <span class="output-foot-end">PRIVATE BY DESIGN</span></div>
       </div>

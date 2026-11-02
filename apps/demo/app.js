@@ -6,7 +6,13 @@ const errors = { INVALID_IMAGE: '图片无效，请选择 64–8192 像素、240
 let file, bitmap, result, ready = false, busy = false, selectedField;
 const canvas = $('canvas'), ctx = canvas.getContext('2d');
 function message(text, error = false) { $('message').hidden = false; $('message').textContent = text; $('message').classList.toggle('error', error); }
-function resetOutput() { result = undefined; $('output').hidden = true; $('empty').hidden = false; $('timing').textContent = ''; selectedField = undefined; $('field-focus').hidden = true; $('switch-type').hidden = true; $('retry').hidden = true; }
+function resetOutput() {
+  $('output').closest('.output-body').scrollTop = 0;
+  for (const details of $('output').querySelectorAll('details[open]')) details.open = false;
+  result = undefined; selectedField = undefined;
+  $('output').hidden = true; $('empty').hidden = false; $('timing').textContent = '';
+  $('field-focus').hidden = true; $('switch-type').hidden = true; $('retry').hidden = true;
+}
 function draw() {
   if (!bitmap) return;
   canvas.width = bitmap.width; canvas.height = bitmap.height;
@@ -81,33 +87,54 @@ async function copy(text) {
   catch { message('复制失败，请选择字段文字手动复制', true); }
 }
 $('copy-all').onclick = () => { if (result) void copy(fieldKeys(result).filter(key => result.fields[key]).map(key => `${labels[key]}：${result.fields[key].value}`).join('\n')); };
+function closeFocus(restoreFocus = true) {
+  const previous = selectedField;
+  selectedField = undefined; $('field-focus').hidden = true;
+  for (const button of $('fields').querySelectorAll('[data-field]')) {
+    button.setAttribute('aria-pressed', 'false');
+    if (restoreFocus && button.dataset.field === previous) button.focus({ preventScroll: true });
+  }
+  draw();
+}
+$('focus-close').onclick = () => closeFocus();
+$('field-focus').onclick = event => { if (event.target === $('field-focus')) closeFocus(); };
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && selectedField) { event.preventDefault(); closeFocus(); }
+});
 function focusField(key) {
+  if (selectedField === key) { closeFocus(); return; }
+  const points = result?.fields[key]?.polygon;
+  if (!bitmap || !points?.length) return;
   selectedField = key; draw();
   for (const button of $('fields').querySelectorAll('[data-field]')) button.setAttribute('aria-pressed', String(button.dataset.field === key));
-  const points = result?.fields[key]?.polygon;
-  $('field-focus').hidden = !points?.length;
-  if (!points?.length) return;
-  const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
-  const x = Math.max(0, Math.min(...xs) - 12), y = Math.max(0, Math.min(...ys) - 12);
-  const w = Math.min(bitmap.width - x, Math.max(...xs) - x + 12), h = Math.min(bitmap.height - y, Math.max(...ys) - y + 12);
-  const zoom = $('focus-canvas'); const scale = Math.min(3, 1000 / w, 240 / h);
+  // Align the crop with the text baseline, including sideways document photos.
+  const angle = Math.atan2(points[1][1] - points[0][1], points[1][0] - points[0][0]);
+  const cos = Math.cos(angle), sin = Math.sin(angle);
+  const rotated = points.map(([x, y]) => [x * cos + y * sin, -x * sin + y * cos]);
+  const x = Math.min(...rotated.map(p => p[0])) - 12, y = Math.min(...rotated.map(p => p[1])) - 12;
+  const w = Math.max(...rotated.map(p => p[0])) - x + 12, h = Math.max(...rotated.map(p => p[1])) - y + 12;
+  const zoom = $('focus-canvas'), scale = Math.min(3, 1000 / w, 240 / h);
   zoom.width = Math.max(1, Math.round(w * scale)); zoom.height = Math.max(1, Math.round(h * scale));
-  zoom.getContext('2d').drawImage(bitmap, x, y, w, h, 0, 0, zoom.width, zoom.height);
+  const context = zoom.getContext('2d');
+  context.fillStyle = '#f0f1e9'; context.fillRect(0, 0, zoom.width, zoom.height);
+  context.scale(scale, scale); context.translate(-x, -y); context.rotate(-angle); context.drawImage(bitmap, 0, 0);
   $('focus-label').textContent = `${labels[key]} · 原图局部`;
-  if (window.matchMedia('(max-width:680px)').matches) $('field-focus').scrollIntoView({ block: 'nearest' });
+  $('field-focus').hidden = false;
+  if (window.matchMedia('(max-width:680px)').matches) $('preview').scrollIntoView({ block: 'nearest', behavior: 'instant' });
+  $('focus-close').focus({ preventScroll: true });
 }
 function renderFields() {
   $('fields').replaceChildren(...fieldKeys(result).map(key => {
     const field = result.fields[key];
     const row = document.createElement('div'), term = document.createElement('dt'), value = document.createElement('dd');
     const focus = document.createElement('button'); focus.className = 'field-link'; focus.textContent = labels[key]; focus.dataset.field = key;
-    focus.setAttribute('aria-pressed', 'false'); focus.disabled = !field?.polygon?.length;
+    focus.setAttribute('aria-pressed', 'false'); focus.setAttribute('aria-controls', 'field-focus'); focus.setAttribute('aria-haspopup', 'dialog'); focus.disabled = !field?.polygon?.length;
     focus.onclick = () => focusField(key); term.append(focus);
     const text = document.createElement('span'); text.textContent = field?.value || '未识别'; value.append(text);
     const warnings = result.warnings.filter(warning => warning.startsWith(key + ':'));
     const review = !field || warnings.some(needsReview);
     row.classList.toggle('needs-review', review);
-    const status = document.createElement('small'); status.textContent = !field ? '待补充' : review ? '待核对' : '已提取'; value.append(status);
+    const status = document.createElement('small'); status.className = 'field-state'; status.textContent = !field ? '待补充' : review ? '待核对' : '已提取'; value.append(status);
     for (const warning of warnings) { const note = document.createElement('small'); note.textContent = warningText(warning); value.append(note); }
     if (field) {
       const button = document.createElement('button'); button.className = 'text-button copy-field'; button.textContent = '复制';
