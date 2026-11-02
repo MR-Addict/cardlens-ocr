@@ -4,14 +4,15 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 int main(int argc, char **argv) {
-    if (argc != 5 && (argc != 7 || std::string(argv[5]) != "--trace-dir")) {
-        std::cerr << "usage: cardlens-ocr MODEL_DIR IMAGE TYPE SIDE [--trace-dir DIRECTORY]\n";
+    if (argc != 5 && ((argc != 7 && argc != 8) || std::string(argv[5]) != "--trace-dir" ||
+                      (argc == 8 && std::string(argv[7]) != "--exhaustive"))) {
+        std::cerr << "usage: cardlens-ocr MODEL_DIR IMAGE TYPE SIDE [--trace-dir DIRECTORY [--exhaustive]]\n";
         return 2;
     }
     try {
         std::unique_ptr<cardlens_ocr::TraceSession> trace;
-        if (argc == 7)
-            trace.reset(new cardlens_ocr::TraceSession(argv[6]));
+        if (argc >= 7)
+            trace.reset(new cardlens_ocr::TraceSession(argv[6], argc == 8));
         auto bgr = cv::imread(argv[2]);
         if (bgr.empty())
             throw std::runtime_error("INVALID_IMAGE");

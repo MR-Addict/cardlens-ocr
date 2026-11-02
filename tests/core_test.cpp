@@ -1,5 +1,6 @@
 #include "cardlens_ocr/core.h"
 #include "internal.h"
+#include "pipeline.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -214,6 +215,70 @@ int main(int argc, char **argv) {
         parse_document({line("机动车行驶证", 0, 0), line("发动机号码7654321", 0, 100)},
                        "vehicle_license", "main", 600, 400);
     check(!engineOnly["fields"].contains("plateNumber"), "engine number mistaken for plate");
+    auto assessed = completeId;
+    assessed["warnings"] = {"address:CAPTION_REMOVED", "address:CAPTION_REMOVED"};
+    update_status(assessed);
+    check(assessed["status"] == "complete" && assessed["warnings"].size() == 1,
+          "informational cleanup downgraded completion or duplicate warning retained");
+    assessed["warnings"].push_back("name:OCR_DISAGREEMENT");
+    update_status(assessed);
+    check(assessed["status"] == "partial", "disagreement accepted as complete");
+    assessed["warnings"] = {"UNSUPPORTED_PAGE"}; update_status(assessed);
+    check(assessed["status"] == "failed", "blocking warning accepted");
+    completeIdLines[1].confidence = .99f;
+    check(confident_candidate(completeId, completeIdLines), "strong candidate rejected");
+    check(!confident_candidate(truncatedId, completeIdLines), "incomplete candidate ended search");
+    auto uncertain = completeId; uncertain["fields"]["authority"]["confidence"] = .96;
+    check(!confident_candidate(uncertain, completeIdLines), "uncertain candidate ended search");
+    for (int angle : {0, 90, 180, 270}) {
+        json mapped = {{"lines", {{{"polygon", {{10, 20}, {15, 20}, {15, 25}, {10, 25}}}}}},
+                       {"fields", json::object()}};
+        cv::Mat translation = (cv::Mat_<double>(3, 3) << 1, 0, 3, 0, 1, 4, 0, 0, 1);
+        restore_coordinates(mapped, angle, {100, 80}, translation, 200, 200);
+        const auto point = mapped["lines"][0]["polygon"][0];
+        float x = angle == 90 ? 20 : angle == 180 ? 89 : angle == 270 ? 79 : 10;
+        float y = angle == 90 ? 69 : angle == 180 ? 59 : angle == 270 ? 10 : 20;
+        check(std::abs(point[0].get<float>() - x - 3) < .01f &&
+              std::abs(point[1].get<float>() - y - 4) < .01f, "rotation mapping incorrect");
+    }
+    auto duplicated = std::vector<Line>{line("居民身份证", 0, 0), line("签发机关某市公安局", 0, 50),
+        line("有效期限2020.01.01-2030.01.01", 0, 100, 500), line("居民身份证", 600, 0),
+        line("签发机关某市公安局", 600, 50), line("有效期限2020.01.01-2030.01.01", 600, 100, 500)};
+    auto duplicateResult = parse_document(duplicated, "id_card", "emblem", 1200, 400);
+    check(duplicateResult["status"] == "failed" && duplicateResult["fields"].empty() &&
+          std::find(duplicateResult["warnings"].begin(), duplicateResult["warnings"].end(),
+                    "MULTIPLE_DOCUMENTS") != duplicateResult["warnings"].end(),
+          "two copies of the same ID page accepted as one");
+    auto overlapping = std::vector<Line>{line("居民身份证", 0, 0), line("居民身份证", 1, 1),
+        line("签发机关某市公安局", 0, 50), line("有效期限2020.01.01-2030.01.01", 0, 100, 500)};
+    check(parse_document(overlapping, "id_card", "emblem", 600, 400)["status"] == "complete",
+          "overlapping text detections treated as two documents");
+    auto duplicateNumbers = parse_document({line("440305199505132561", 0, 100, 280),
+        line("440305199505132561", 600, 100, 280)}, "id_card", "portrait", 1200, 400);
+    check(duplicateNumbers["status"] == "failed", "separate identity numbers accepted as one card");
+    auto uncertainDateLines = completeIdLines;
+    uncertainDateLines.back().confidence = .92f;
+    check(parse_document(uncertainDateLines, "id_card", "emblem", 600, 400)["status"] == "partial",
+          "weak date reading produced complete status");
+    auto verifyDate = completeId;
+    verifyDate["fields"]["validity"]["confidence"] = .97;
+    cv::Mat verificationImage(400, 600, CV_8UC3, cv::Scalar(255, 255, 255));
+    auto verifyWith = [&](const std::string &date) {
+        RefinementReader reader{
+            [&](const cv::Mat &, const std::string &key) {
+                return std::make_pair(key == "validity" ? date : std::string("某市公安局"), .99f);
+            }, [](const cv::Mat &) { return std::vector<Line>{}; },
+            [](const cv::Mat &, const json &) { return std::make_pair(std::string(), 0.f); }};
+        auto checked = refine_fields(verifyDate, verificationImage, completeIdLines, "id_card", "emblem", reader);
+        update_status(checked);
+        return checked;
+    };
+    auto disputedDate = verifyWith("2020.01.02-2030.01.01");
+    check(disputedDate["status"] == "partial" &&
+          disputedDate["fields"]["validity"]["value"] == completeId["fields"]["validity"]["value"],
+          "conflicting date verification accepted or silently replaced a valid date");
+    check(verifyWith("2020年1月1日至2030年1月1日")["status"] == "complete",
+          "equivalent date formatting treated as conflicting content");
     cv::Mat bgr = cv::imread(argv[2]), rgba;
     cv::cvtColor(bgr, rgba, cv::COLOR_BGR2RGBA);
     for (int life = 0; life < 2; life++) {

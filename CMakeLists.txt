@@ -21,7 +21,7 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "OHOS")
   list(APPEND cv_modules imgcodecs)
 endif()
 find_package(OpenCV REQUIRED CONFIG COMPONENTS ${cv_modules} PATHS "${CARDLENS_DEPS}/lib/cmake/opencv4" NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
-add_library(cardlens_core STATIC core/src/core.cpp core/src/fields.cpp core/src/ctc.cpp
+add_library(cardlens_core STATIC core/src/core.cpp core/src/engine.cpp core/src/geometry.cpp core/src/refinement.cpp core/src/assessment.cpp core/src/fields.cpp core/src/ctc.cpp
   "${CARDLENS_COMMON}/clipper2/src/clipper.engine.cpp"
   "${CARDLENS_COMMON}/clipper2/src/clipper.offset.cpp"
   "${CARDLENS_COMMON}/clipper2/src/clipper.rectclip.cpp")

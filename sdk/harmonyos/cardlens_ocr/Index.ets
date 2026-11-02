@@ -24,6 +24,7 @@ let initializing: boolean = false;
 let busy: boolean = false;
 
 async function initialize(context: common.Context): Promise<void> {
+  if (busy) { throw new Error('BUSY'); }
   if (ready || initializing) { throw new Error('ALREADY_INITIALIZED'); }
   initializing = true;
   try {
@@ -48,6 +49,10 @@ async function initialize(context: common.Context): Promise<void> {
 async function recognize(imageBytes: ArrayBuffer, options: RecognizeOptions): Promise<DocumentResult> {
   if (!ready) { throw new Error('NOT_INITIALIZED'); }
   if (busy) { throw new Error('BUSY'); }
+  if (!options || !((options.documentType === 'id_card' && (options.side === 'portrait' || options.side === 'emblem')) ||
+      ((options.documentType === 'driver_license' || options.documentType === 'vehicle_license') && options.side === 'main'))) {
+    throw new Error('INVALID_DOCUMENT_OPTIONS');
+  }
   if (imageBytes.byteLength < 8 || imageBytes.byteLength > 20000000) { throw new Error('INVALID_IMAGE'); }
   const bytes: Uint8Array = new Uint8Array(imageBytes);
   const jpeg: boolean = bytes[0] === 255 && bytes[1] === 216;

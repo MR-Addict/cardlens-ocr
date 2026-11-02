@@ -26,6 +26,19 @@ class SdkTests(unittest.TestCase):
             ocr.release()
             ocr.release()
 
+    def test_busy_and_invalid_options(self):
+        ocr.initialize(ROOT / 'models')
+        with self.assertRaisesRegex(ValueError, 'INVALID_DOCUMENT_OPTIONS'):
+            ocr.recognize(b'broken', {})
+        ocr._lock.acquire()
+        try:
+            with self.assertRaisesRegex(RuntimeError, 'BUSY'):
+                ocr.recognize(b'broken', {})
+            with self.assertRaisesRegex(RuntimeError, 'BUSY'):
+                ocr.release()
+        finally:
+            ocr._lock.release()
+
     def test_reference_fields(self):
         ocr.initialize(ROOT / 'models')
         for case in json.loads((ROOT / 'tests/gold.json').read_text(encoding='utf-8'))['cases']:

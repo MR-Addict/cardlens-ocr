@@ -10,14 +10,16 @@ struct Sink {
     std::filesystem::path directory;
     std::ofstream stream;
     size_t sequence = 0;
+    bool exhaustive = false;
 };
 thread_local std::unique_ptr<Sink> sink;
 } // namespace
-TraceSession::TraceSession(const std::string &directory) {
+TraceSession::TraceSession(const std::string &directory, bool exhaustive) {
     if (sink)
         throw std::runtime_error("Diagnostic session already active");
     auto output = std::make_unique<Sink>();
     output->directory = directory;
+    output->exhaustive = exhaustive;
     std::filesystem::create_directories(output->directory);
     output->stream.open(output->directory / "events.jsonl");
     if (!output->stream)
@@ -25,6 +27,7 @@ TraceSession::TraceSession(const std::string &directory) {
     sink = std::move(output);
 }
 TraceSession::~TraceSession() { sink.reset(); }
+bool exhaustive_search() { return sink && sink->exhaustive; }
 bool trace_enabled() { return bool(sink); }
 void trace_event(nlohmann::json value) {
     if (!sink)

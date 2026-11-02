@@ -1,4 +1,5 @@
 #include "internal.h"
+#include "pipeline.h"
 #include "trace.h"
 #include <algorithm>
 #include <cmath>
@@ -14,6 +15,34 @@ std::string compact(std::string s) {
                 [](unsigned char c) { return c == ' ' || c == '\t' || c == '\r' || c == '\n'; }),
             s.end());
     return s;
+}
+bool repeated_document_anchors(const std::vector<Line> &lines, int width, int height) {
+    std::map<std::string, std::vector<cv::Rect>> seen;
+    static const std::regex number("[0-9]{17}[0-9Xx]");
+    for (const auto &line : lines) {
+        if (line.confidence < .7f || line.polygon.empty()) continue;
+        const auto text = compact(line.text);
+        std::vector<std::string> anchors;
+        for (const auto *label : {"居民身份证", "身份号码", "驾驶证", "行驶证", "准驾车型",
+                                  "初次领证日期", "车辆识别代号", "签发机关", "有效期限",
+                                  "姓名", "性别", "民族", "出生", "住址", "号牌号码",
+                                  "品牌型号", "发动机号码", "注册日期", "发证日期"})
+            if (text.find(label) != std::string::npos) anchors.push_back(label);
+        if (std::regex_search(text, number)) anchors.push_back("identity_number");
+        const auto bounds = cv::boundingRect(line.polygon);
+        for (const auto &anchor : anchors) {
+            for (const auto &other : seen[anchor]) {
+                const auto overlap = bounds & other;
+                const cv::Point2f a(bounds.x + bounds.width * .5f, bounds.y + bounds.height * .5f);
+                const cv::Point2f b(other.x + other.width * .5f, other.y + other.height * .5f);
+                // Overlapping detector boxes and repeated fragments on one row are one source.
+                if (overlap.area() < .1 * std::min(bounds.area(), other.area()) &&
+                    cv::norm(a - b) > .25 * std::min(width, height)) return true;
+            }
+            seen[anchor].push_back(bounds);
+        }
+    }
+    return false;
 }
 json polygon(const std::vector<cv::Point2f> &points) {
     json j = json::array();
@@ -132,6 +161,13 @@ bool dates_valid(const std::string &text) {
             return false;
     }
     return true;
+}
+bool date_field(const std::string &key) {
+    return key == "birthDate" || key == "firstIssueDate" || key == "registerDate" ||
+           key == "issueDate" || key == "validity";
+}
+float field_review_threshold(const std::string &key) {
+    return date_field(key) ? .95f : .85f;
 }
 bool field_valid(const std::string &key, const std::string &value) {
     static const std::string date =
@@ -261,7 +297,7 @@ json parse_document(const std::vector<Line> &lines, const std::string &type,
                              pageText.find("总质量") != std::string::npos;
     bool vehicleMain = pageText.find("车辆识别代号") != std::string::npos ||
                        pageText.find("品牌型号") != std::string::npos;
-    if (idPair || mixedTypes || (driverSupplement && driverMain) ||
+    if (repeated_document_anchors(lines, width, height) || idPair || mixedTypes || (driverSupplement && driverMain) ||
         (vehicleSupplement && vehicleMain)) {
         result["status"] = "failed";
         result["warnings"].push_back("MULTIPLE_DOCUMENTS");
@@ -862,16 +898,14 @@ json parse_document(const std::vector<Line> &lines, const std::string &type,
             const auto &f = result["fields"][key];
             if (!field_valid(key, f["value"]))
                 result["warnings"].push_back(key + ":FIELD_INVALID");
-            if (f["confidence"].get<float>() < .85f)
+            if (f["confidence"].get<float>() < field_review_threshold(key))
                 result["warnings"].push_back(key + ":LOW_CONFIDENCE");
         }
     }
     if (result["fields"].contains("name") &&
         result["fields"]["name"]["confidence"].get<float>() < .94f)
         result["warnings"].push_back("name:REVIEW_REQUIRED");
-    result["status"] = result["fields"].empty()     ? "failed"
-                       : result["warnings"].empty() ? "complete"
-                                                    : "partial";
+    update_status(result);
     return result;
 }
 } // namespace cardlens_ocr

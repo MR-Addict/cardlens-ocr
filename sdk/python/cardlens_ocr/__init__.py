@@ -1,4 +1,5 @@
 """Offline document recognition: initialize, recognize, release."""
+from contextlib import contextmanager
 import ctypes as c
 import io
 import json
@@ -13,8 +14,17 @@ class _Ocr:
         self._handle = c.c_void_p()
         self._lib = None
 
+    @contextmanager
+    def _operation(self):
+        if not self._lock.acquire(blocking=False):
+            raise RuntimeError('BUSY')
+        try:
+            yield
+        finally:
+            self._lock.release()
+
     def initialize(self, model_directory, *, library=None):
-        with self._lock:
+        with self._operation():
             if self._handle:
                 raise RuntimeError('ALREADY_INITIALIZED')
             if library is None:
@@ -46,9 +56,20 @@ class _Ocr:
         raise RuntimeError(message)
 
     def recognize(self, image, options):
-        with self._lock:
+        with self._operation():
             if not self._handle:
                 raise RuntimeError('NOT_INITIALIZED')
+            if not isinstance(options, dict) or not (
+                options.get('documentType') == 'id_card' and options.get('side') in ('portrait', 'emblem') or
+                options.get('documentType') in ('driver_license', 'vehicle_license') and options.get('side') == 'main'
+            ):
+                raise ValueError('INVALID_DOCUMENT_OPTIONS')
+            if isinstance(image, (bytes, bytearray)):
+                size = len(image)
+            else:
+                size = Path(image).stat().st_size
+            if size < 8 or size > 20000000:
+                raise ValueError('INVALID_IMAGE')
             try:
                 source = Image.open(io.BytesIO(image) if isinstance(image, (bytes, bytearray)) else image)
                 with source:
@@ -73,7 +94,7 @@ class _Ocr:
                 self._lib.cl_free(result)
 
     def release(self):
-        with self._lock:
+        with self._operation():
             if self._handle:
                 self._lib.cl_release(self._handle)
                 self._handle = c.c_void_p()

@@ -9,7 +9,8 @@ async function decode(input) {
   if (bytes.length < 8 || bytes.length > 20000000) throw new Error('INVALID_IMAGE');
   const { default: sharp } = await import('sharp');
   const image = sharp(bytes, { limitInputPixels: 24000000 });
-  const meta = await image.metadata();
+  let meta;
+  try { meta = await image.metadata(); } catch { throw new Error('INVALID_IMAGE'); }
   if (!['jpeg', 'png'].includes(meta.format)) throw new Error('UNSUPPORTED_IMAGE_FORMAT');
   if (Math.min(meta.width, meta.height) < 64 || Math.max(meta.width, meta.height) > 8192) throw new Error('INVALID_IMAGE');
   const { data, info } = await image.rotate().ensureAlpha().raw().toBuffer({ resolveWithObject: true });

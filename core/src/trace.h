@@ -6,15 +6,17 @@ namespace cardlens_ocr {
 #ifdef CARDLENS_OCR_DIAGNOSTICS
 class TraceSession {
   public:
-    explicit TraceSession(const std::string &directory);
+    explicit TraceSession(const std::string &directory, bool exhaustive = false);
     ~TraceSession();
     TraceSession(const TraceSession &) = delete;
     TraceSession &operator=(const TraceSession &) = delete;
 };
 bool trace_enabled();
+bool exhaustive_search();
 void trace_event(nlohmann::json value);
 void trace_image(const cv::Mat &image, nlohmann::json value);
 #else
+inline bool exhaustive_search() { return false; }
 inline bool trace_enabled() { return false; }
 inline void trace_event(const nlohmann::json &) {}
 inline void trace_image(const cv::Mat &, const nlohmann::json &) {}

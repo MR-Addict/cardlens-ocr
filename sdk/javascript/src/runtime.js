@@ -9,10 +9,11 @@ export class Runtime {
     m.FS.mkdir('/models');
     for (const [name, bytes] of files) m.FS.writeFile(`/models/${name}`, bytes);
     this.module = m;
-    const path = this.string('/models');
-    const slots = m._malloc(8);
-    m.HEAPU8.fill(0, slots, slots + 8);
+    let path = 0, slots = 0;
     try {
+      path = this.string('/models'); slots = m._malloc(8);
+      if (!slots) throw new Error('ALLOCATION_FAILED');
+      m.HEAPU8.fill(0, slots, slots + 8);
       const code = m._cl_initialize(path, slots, slots + 4);
       this.check(code, slots + 4);
       this.handle = m.getValue(slots, '*');
@@ -38,12 +39,13 @@ export class Runtime {
   recognize({ data, width, height, stride, options }) {
     if (!this.handle) throw new Error('NOT_INITIALIZED');
     const m = this.module;
-    const image = m._malloc(data.byteLength);
-    const slots = m._malloc(8);
-    const type = this.string(options.documentType), side = this.string(options.side);
-    if (!image || !slots) throw new Error('ALLOCATION_FAILED');
-    let result = 0;
+    let image = 0, slots = 0, type = 0, side = 0, result = 0;
     try {
+      image = m._malloc(data.byteLength);
+      slots = m._malloc(8);
+      if (!image || !slots) throw new Error('ALLOCATION_FAILED');
+      m.HEAPU8.fill(0, slots, slots + 8);
+      type = this.string(options.documentType); side = this.string(options.side);
       m.HEAPU8.set(new Uint8Array(data), image);
       const code = m._cl_recognize(this.handle, image, data.byteLength, width, height, stride,
         type, side, slots, slots + 4);
@@ -61,5 +63,3 @@ export class Runtime {
     this.module = undefined;
   }
 }
-
-export const modelNames = ['det.param', 'det.bin', 'rec.param', 'rec.bin', 'dictionary.txt'];

@@ -13,6 +13,8 @@ struct Line {
 bool field_valid(const std::string &key, const std::string &value);
 std::string clean_field(const std::string &key, std::string value);
 bool dates_valid(const std::string &text);
+bool date_field(const std::string &key);
+float field_review_threshold(const std::string &key);
 struct NameReading {
     std::string value;
     float confidence;
