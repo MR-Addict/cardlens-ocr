@@ -7,7 +7,10 @@ export interface DocumentResult {
   documentType: RecognizeOptions['documentType'];
   side: RecognizeOptions['side'];
   status: 'complete' | 'partial' | 'failed';
-  width: number; height: number; rotation: number;
+  /** Dimensions and polygons refer to the EXIF-oriented input image. */
+  width: number; height: number;
+  /** Clockwise quarter-turn used for recognition, in degrees. */
+  rotation: number;
   fields: Record<string, FieldResult>;
   lines: TextLine[];
   warnings: string[];

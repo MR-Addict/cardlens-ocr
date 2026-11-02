@@ -15,7 +15,13 @@ function resetOutput() {
 }
 function draw() {
   if (!bitmap) return;
-  canvas.width = bitmap.width; canvas.height = bitmap.height;
+  const rotation = result?.status !== 'failed' && [0, 90, 180, 270].includes(result?.rotation) ? result.rotation : 0;
+  const sideways = rotation === 90 || rotation === 270;
+  canvas.width = sideways ? bitmap.height : bitmap.width;
+  canvas.height = sideways ? bitmap.width : bitmap.height;
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(rotation * Math.PI / 180);
+  ctx.translate(-bitmap.width / 2, -bitmap.height / 2);
   ctx.drawImage(bitmap, 0, 0);
   if (!result) return;
   ctx.strokeStyle = '#cb5435'; ctx.lineWidth = Math.max(2, canvas.width / 450);

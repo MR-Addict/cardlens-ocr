@@ -75,6 +75,53 @@ test('field overlay stays inside the preview throughout its entrance animation',
   }
 });
 
+test('orients the document preview and field overlays using result rotation', async ({ page }) => {
+  await page.route('**/sdk/browser.js', route => route.fulfill({ contentType: 'text/javascript', body: `
+    export default {
+      async initialize() {}, async release() {},
+      async recognize() { return {
+        documentType: 'id_card', side: 'portrait', status: 'partial', width: 160, height: 96,
+        rotation: window.testRotation,
+        fields: { name: { value: '测试', rawText: '测试', confidence: .99, polygon: [[20, 20], [60, 20], [60, 40], [20, 40]] } },
+        lines: [], warnings: []
+      }; }
+    };
+  ` }));
+  await page.goto('./');
+  const input = await sharp({ create: { width: 160, height: 96, channels: 3, background: '#ffffff' } })
+    .composite([{ input: Buffer.from('<svg width="160" height="96"><rect width="12" height="12" fill="#ff0000"/></svg>') }]).png().toBuffer();
+  for (const rotation of [0, 90, 180, 270]) {
+    await page.evaluate(angle => { window.testRotation = angle; }, rotation);
+    await page.locator('#file').setInputFiles({ name: 'orientation.png', mimeType: 'image/png', buffer: input });
+    await expect(page.locator('#type')).toBeEnabled();
+    await expect(page.locator('#output')).toBeVisible();
+    const pixels = await page.locator('#canvas').evaluate((canvas, angle) => {
+      const context = canvas.getContext('2d');
+      const point = (x, y) => {
+        if (angle === 90) return [96 - y, x];
+        if (angle === 180) return [160 - x, 96 - y];
+        if (angle === 270) return [y, 160 - x];
+        return [x, y];
+      };
+      const pixel = (x, y) => Array.from(context.getImageData(...point(x, y), 1, 1).data).slice(0, 3);
+      return { width: canvas.width, height: canvas.height, corner: pixel(6, 6), box: pixel(40, 20) };
+    }, rotation);
+    expect([pixels.width, pixels.height]).toEqual(rotation % 180 ? [96, 160] : [160, 96]);
+    expect(pixels.corner).toEqual([255, 0, 0]);
+    expect(pixels.box).toEqual([203, 84, 53]);
+    await page.getByRole('button', { name: '姓名', exact: true }).click();
+    await expect(page.locator('#field-focus')).toBeVisible();
+    await page.locator('#focus-close').click();
+    const downloadEvent = page.waitForEvent('download');
+    await page.locator('#download').click();
+    const exported = JSON.parse(await readFile(await (await downloadEvent).path(), 'utf8'));
+    expect(exported.rotation).toBe(rotation);
+    expect([exported.width, exported.height]).toEqual([160, 96]);
+    expect(exported.fields.name.polygon).toEqual([[20, 20], [60, 20], [60, 40], [20, 40]]);
+    await page.locator('#clear').click();
+  }
+});
+
 test('responsive layout and image validation', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./');
