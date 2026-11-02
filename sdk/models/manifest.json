@@ -1,0 +1,50 @@
+{
+  "model": "PaddleOCR PP-OCRv5 mobile",
+  "license": "Apache-2.0",
+  "source": "https://github.com/PaddlePaddle/PaddleOCR",
+  "conversion": {
+    "paddle2onnx": "2.0.1",
+    "opset": 14,
+    "pnnx": "20261020",
+    "fp16": false
+  },
+  "files": [
+    {
+      "file": "det.bin",
+      "bytes": 4685856,
+      "sha256": "c7aa3ed7fe5791df29becbf4a8ffbee4ca20e4357fd4ce5114c29101dd2caa04"
+    },
+    {
+      "file": "det.param",
+      "bytes": 23530,
+      "sha256": "e8edfc052be45735978adb8b7da9a03b1bac01bb8a6653a36993a402f6b38922"
+    },
+    {
+      "file": "dictionary.txt",
+      "bytes": 74012,
+      "sha256": "d1979e9f794c464c0d2e0b70a7fe14dd978e9dc644c0e71f14158cdf8342af1b"
+    },
+    {
+      "file": "rec.bin",
+      "bytes": 16442228,
+      "sha256": "1d73b6e2ee6cbd02cabfac6ef9b6a48e62ae76ae02200ea23ac57b121e29697c"
+    },
+    {
+      "file": "rec.param",
+      "bytes": 19336,
+      "sha256": "86f8c19a9b2ecf83143b0fdf0060ce07e092260ed5615fc5bb552900c3a5df91"
+    }
+  ],
+  "upstream": [
+    {
+      "file": "PP-OCRv5_mobile_det_infer.tar",
+      "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+      "sha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58"
+    },
+    {
+      "file": "PP-OCRv5_mobile_rec_infer.tar",
+      "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_rec_infer.tar",
+      "sha256": "566b9512b34e34a9f0db54d87b51fa5a0b9ed2cf1ab7e49728cc0b8b5a64f414"
+    }
+  ]
+}

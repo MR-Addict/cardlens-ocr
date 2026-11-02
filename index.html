@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="CardLens OCR：在浏览器本地识别身份证、驾驶证与行驶证。">
+  <meta name="theme-color" content="#f5f4f0">
+  <title>CardLens OCR · 离线证件识别</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="CardLens OCR 首页"><span class="brand-mark" aria-hidden="true"><i></i></span>CardLens<span class="brand-suffix">OCR</span></a>
+    <div class="nav-right"><span class="local-badge"><span class="dot"></span> 在你的设备上运行</span><a class="github" href="https://github.com/MR-Addict/cardlens-ocr" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="intro-copy">
+        <div class="eyebrow"><span class="accent-line"></span> LESS INPUT. MORE CLARITY.</div>
+        <h1>从一张证件，<br>到清晰的<span class="title-accent">信息<svg viewBox="0 0 180 12" aria-hidden="true"><path d="M3 8Q85 0 177 6"/></svg></span><span class="title-period">。</span></h1>
+        <p>让信息触手可及，让隐私留在本地。<br class="mobile-break">身份证、驾驶证、行驶证，一处识别。</p>
+      </div>
+      <aside class="intro-note"><span class="note-index">01 — 03</span><p>一张图片<br>有序的信息</p><span class="note-caption">本地处理 · 无需上传服务器</span></aside>
+    </section>
+    <section class="workspace" aria-label="证件识别工作区">
+      <div class="input-panel panel">
+        <div class="panel-head"><h2><span class="step">01</span> 置入证件</h2><span class="section-tag">DOCUMENT INPUT</span></div>
+        <div class="controls" id="controls">
+          <label>证件类型<select id="type"><option value="id_card">居民身份证</option><option value="driver_license">机动车驾驶证</option><option value="vehicle_license">机动车行驶证</option></select></label>
+          <label id="side-control">证件页面<select id="side"><option value="portrait">人像面</option><option value="emblem">国徽面</option></select></label>
+        </div>
+        <label class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="选择证件图片">
+          <input id="file" type="file" accept="image/jpeg,image/png" hidden>
+          <span class="scan-art" aria-hidden="true"><span class="scan-corner corner-tl"></span><span class="scan-corner corner-tr"></span><span class="scan-corner corner-bl"></span><span class="scan-corner corner-br"></span><span class="sample-card"><span class="sample-portrait"></span><span class="sample-lines"><i></i><i></i><i></i></span><span class="sample-number"></span></span><span class="scan-line"></span><span class="upload-icon">↗</span></span>
+          <strong>把证件放在这里</strong>
+          <span class="drop-hint">拖入、粘贴图片，或<span class="upload-link">点击选择</span></span>
+          <span class="file-formats">JPEG / PNG <span>·</span> 最大 20 MB</span>
+        </label>
+        <div class="preview" id="preview" hidden>
+          <canvas id="canvas" aria-label="证件图片与识别位置"></canvas>
+          <div id="field-focus" class="field-focus" hidden>
+            <section class="focus-dialog" role="dialog" aria-labelledby="focus-label" aria-describedby="focus-hint">
+              <div class="focus-head"><span id="focus-label"></span><button id="focus-close" class="focus-close" aria-label="关闭局部放大">×</button></div>
+              <div class="focus-image"><canvas id="focus-canvas" aria-label="当前字段放大预览"></canvas></div>
+              <p id="focus-hint">再次点击字段或按 Esc 收起</p>
+            </section>
+          </div>
+        </div>
+        <div class="file-row" id="file-row" hidden><span id="filename"></span><button id="change" class="text-button">更换图片 ↗</button><button id="clear" class="text-button">清除</button></div>
+
+      </div>
+      <div class="output-panel panel" id="output-panel" aria-busy="false">
+        <div class="panel-head"><h2><span class="step">02</span> 读取信息</h2><span id="timing" class="muted"></span><span class="section-tag output-tag">RECOGNITION OUTPUT</span></div>
+        <div class="output-body">
+          <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+          <button id="retry" class="text-button" hidden>重试识别</button>
+          <progress id="progress" max="5" value="0" hidden aria-label="模型加载进度"></progress>
+          <div id="empty" class="empty">
+            <div class="empty-visual" aria-hidden="true"><span class="cross cross-tl">+</span><span class="cross cross-br">+</span><div class="document-icon"><span class="document-label">Aa</span><span></span><span></span><span></span><i>↗</i></div></div>
+            <strong>每一条信息，都清晰有序。</strong><p>识别完成后，在这里查看与导出结果</p>
+            <div class="waiting"><span></span> 等待置入证件</div>
+          </div>
+          <div id="output" hidden>
+            <div class="result-header"><span id="status" class="status"></span><button id="copy-all" class="text-button">复制全部</button><button id="download" class="text-button">导出 JSON ↓</button></div>
+            <button id="switch-type" class="text-button" hidden></button>
+            <dl id="fields"></dl>
+            <ul id="warnings" class="warnings"></ul>
+            <details><summary>查看原始文字</summary><div id="lines"></div></details>
+          </div>
+        </div>
+        <div class="output-foot"><span class="dot"></span> <span id="offline-state">图片仅在本地处理</span> <span class="output-foot-end">PRIVATE BY DESIGN</span></div>
+      </div>
+    </section>
+    <div class="capabilities"><span class="capability-lead">小而轻，随处可用。</span><span>身份证双面 <i>/</i> 驾驶证主页 <i>/</i> 行驶证主页</span><span class="capability-local"><span aria-hidden="true">◇</span> 离线识别 · 开源 SDK</span></div>
+    <footer><a class="footer-brand" href="./">CardLens <span>OCR</span></a><span class="platforms">Web <i>·</i> Node.js <i>·</i> Python <i>·</i> C/C++ <i>·</i> 鸿蒙</span><a href="https://github.com/MR-Addict/cardlens-ocr/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License ↗</a></footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./offline.js"></script>
+</body>
+</html>
