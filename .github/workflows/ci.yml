@@ -36,6 +36,16 @@ jobs:
           key: ${{ steps.deps.outputs.cache-primary-key }}
       - name: Build native SDK
         run: python scripts/build.py native --use-installed-deps
+      - uses: actions/cache@v5
+        with:
+          path: |
+            out/testdata/id-front.jpg
+            out/testdata/id-back.jpg
+            out/testdata/driver.jpg
+            out/testdata/vehicle.jpg
+          key: references-${{ hashFiles('tests/reference-sources.json') }}
+      - name: Check reference downloader
+        run: python tests/fetch_references_test.py
       - name: Fetch reference inputs
         run: python tests/fetch_references.py
       - name: Check C++ SDK

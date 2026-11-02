@@ -49,9 +49,20 @@ jobs:
         run: |
           python scripts/build.py wasm --use-installed-deps
           pnpm build
+      - uses: actions/cache@v5
+        with:
+          path: |
+            out/testdata/id-front.jpg
+            out/testdata/id-back.jpg
+            out/testdata/driver.jpg
+            out/testdata/vehicle.jpg
+          key: references-${{ hashFiles('tests/reference-sources.json') }}
+      - name: Check reference downloader
+        run: python tests/fetch_references_test.py
+      - name: Fetch reference inputs
+        run: python tests/fetch_references.py
       - name: Check Node.js SDK
         run: |
-          python tests/fetch_references.py
           pnpm test:client
           pnpm test:node
       - name: Check browser recognition
