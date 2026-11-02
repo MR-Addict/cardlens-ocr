@@ -183,7 +183,7 @@ footer{flex-wrap:wrap;padding-top:22px;gap:18px}
 .focus-image{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:14px 0}
 .focus-image canvas{display:block;width:100%;height:100%;object-fit:contain;min-height:0}
 #focus-hint{margin:0;font-size:10px;color:#83867e;flex:none}
-@keyframes focus-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes focus-enter{from{opacity:0}to{opacity:1}}
 .field-link{font:inherit;color:inherit;border:0;padding:0;background:none;text-align:left;text-decoration:underline;text-underline-offset:4px}
 .field-link[aria-pressed=true]{color:#f3c3a5}
 .field-link:disabled{text-decoration:none}

@@ -51,6 +51,30 @@ test('recognizes four document sides locally and exports JSON', async ({ page })
   expect(errors).toEqual([]);
 });
 
+test('field overlay stays inside the preview throughout its entrance animation', async ({ page }) => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('./');
+    const frames = await page.evaluate(() => {
+      document.getElementById('dropzone').hidden = true;
+      const preview = document.getElementById('preview'), overlay = document.getElementById('field-focus');
+      preview.hidden = false; overlay.hidden = false;
+      const animations = overlay.getAnimations();
+      return [0, .5, 1].map(progress => {
+        for (const animation of animations) {
+          animation.pause(); animation.currentTime = animation.effect.getTiming().duration * progress;
+        }
+        const container = preview.getBoundingClientRect(), bounds = overlay.getBoundingClientRect();
+        return { left: bounds.left - container.left, top: bounds.top - container.top,
+          right: container.right - bounds.right, bottom: container.bottom - bounds.bottom };
+      });
+    });
+    for (const frame of frames) {
+      for (const distance of Object.values(frame)) expect(distance).toBeGreaterThanOrEqual(-1);
+    }
+  }
+});
+
 test('responsive layout and image validation', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./');
@@ -183,6 +207,7 @@ for (const width of [1280, 390]) test(`preselects a document, links fields to im
   await expect(page.locator('#focus-label')).toContainText('姓名');
   await expect(page.getByRole('button', { name: '姓名', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await stablePanels();
+  await page.locator('#field-focus').evaluate(element => Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished)));
   const preview = await page.locator('#preview').boundingBox(), overlay = await page.locator('#field-focus').boundingBox();
   expect(overlay.x).toBeGreaterThanOrEqual(preview.x);
   expect(overlay.y).toBeGreaterThanOrEqual(preview.y);
